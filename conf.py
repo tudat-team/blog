@@ -164,6 +164,6 @@ html_static_path = ['_static']
 html_logo = "_static/cover.png"
 
 
-disqus_shortname = "tudat-space"
+disqus_shortname = "tudat-blog"
 disqus_drafts = True
 blog_baseurl = "https://tudat-blog.disqus.com"
