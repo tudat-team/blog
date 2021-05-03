@@ -2,3 +2,4 @@ ablog
 sphinx-panels
 insipid-sphinx-theme
 sphinx-book-theme
+furo
