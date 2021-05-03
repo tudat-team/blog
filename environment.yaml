@@ -1,0 +1,14 @@
+name: tudat-blog
+channels:
+  - tudat-team
+  - conda-forge
+  - defaults
+dependencies:
+  - bibtexparser
+  - python=3.8
+  - rever
+  - pip
+  - pip:
+variables:
+  VAR1: valueA
+  VAR2: valueB
