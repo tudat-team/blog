@@ -1,0 +1,13 @@
+.. post:: 2021-05-07
+   :tags: developer
+   :author: Geoffrey
+
+Maintaining API Documentation
+==============================
+
+Putting it lightly, the ``tudat`` ecosystem has a "difficult to maintain"
+system for maintaining code docstrings.
+
+In short, it's a tool that generates docstrings for API's that are across
+multiple languages without.
+
