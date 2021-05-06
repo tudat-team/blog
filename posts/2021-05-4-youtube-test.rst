@@ -1,6 +1,6 @@
 .. post:: 2021-05-04
    :tags: AE4874 I, astronomy, random
-   :author: Geoffrey Garrett
+   :author: Geoffrey
 
 An Impermanent Perspective
 ==========================

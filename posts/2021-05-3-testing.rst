@@ -1,4 +1,4 @@
-.. post:: 2021-05-03
+.. post::
    :tags: developer
    :author: Geoffrey
 

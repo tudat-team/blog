@@ -144,9 +144,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # a list of builtin themes.
 #
 
-# html_theme = 'alabaster'
+html_theme = 'alabaster'
 # html_theme = 'sphinx_book_theme'
-html_theme = "insipid"
+# html_theme = "insipid"
 html_title = 'tudat-space'
 
 if html_theme=="insipid":

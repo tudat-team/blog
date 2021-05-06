@@ -1,13 +1,121 @@
-.. post:: 2021-05-07
-   :tags: developer
+.. post:: 2021-05-06
+   :tags: devops
    :author: Geoffrey
 
 Maintaining API Documentation
 ==============================
 
-Putting it lightly, the ``tudat`` ecosystem has a "difficult to maintain"
-system for maintaining code docstrings.
+Putting it lightly, the ``tudat`` source has a "difficult to maintain" system
+for code docstrings. This is a problem, because these docstrings are needed in
+order to generate the most used component related to software: API
+Documentation. Let's take an arbitrary example.
 
-In short, it's a tool that generates docstrings for API's that are across
-multiple languages without.
+.. code-block:: C++
+    :caption: ``tudat/include/interface/spice/spiceInterface.h`` (`permalink`_)
+
+    //! Computes the angular velocity of one frame w.r.t. to another frame.
+    /*!
+     * Computes the angular velocity of one frame w.r.t. to another frame. at a given
+     * time instant. kernels defining the two frames, as well as any required intermediate frames, at
+     * the requested time must have been loaded. Wrapper for xf2rav_c spice function (utilizing
+     *  sxform_c).
+     * \param originalFrame Reference frame from which the rotation is made.
+     * \param newFrame Reference frame to which the rotation is made.
+     * \param ephemerisTime Value of ephemeris time at which rotation is to be determined.
+     * \return Angular velocity of newFrame w.r.t. originalFrame, expressed in originalFrame.
+     */
+    Eigen::Vector3d getAngularVelocityVectorOfFrameInOriginalFrame(const std::string &originalFrame,
+                                                                   const std::string &newFrame,
+                                                                   const double ephemerisTime);
+
+.. _`permalink`: https://github.com/tudat-team/tudat/blob/fa30c49dca7ee27630717efb8546802589a4c8b7/include/tudat/interface/spice/spiceInterface.h#L175
+
+This is setup up correctly to allow `Doxygen`_ to generate the following entry
+in the C++ API documentation:
+
+.. _`Doxygen`: https://www.doxygen.nl/index.html
+
+.. image:: ../_static/api-docs-example1.png
+    :width: 100%
+
+This can then be translated into Sphinx documentation using `Breathe`_, allowing both a
+Doxygen and Sphinx-based API, for whichever users are more comfortable with.
+However, the process of translating this into Python docstrings to enable the
+Python API to be generated is usually manual.
+
+.. _`Breathe`: https://breathe.readthedocs.io/en/latest/
+
+1. Extract docstring(s) from headers.
+2. Translate into a Python docstring style understood by established tools.
+3. Translate types from C++ to Python equivalent types:
+
++---------------------+--------------------+
+| C++                 | Python             |
++---------------------+--------------------+
+| ``double``          | ``float``          |
++---------------------+--------------------+
+| ``std:vec<X>``      | ``list[Y]``        |
++---------------------+--------------------+
+| ``std::pair<A,B>``  | ``tuple[C,D]``     |
++---------------------+--------------------+
+| ``Eigen::Vector3d`` | ``np.ndarray[,3]`` |
++---------------------+--------------------+
+
+4. Change references to other functions in the API, to Python equivalent forms.
+
+Following this process, we have developed the required function for the
+``pybind11`` solution:
+
+.. code-block:: C++
+
+    std::string get_get_angular_velocity_vector_of_frame_in_original_frame_docstring(){
+        return R"mydelimiter(
+            Computes the angular velocity of one frame w.r.t. to another frame.
+
+            Extended Summary
+            ----------------
+            Computes the angular velocity of one frame w.r.t. to another frame. at a given
+            time instant. kernels defining the two frames, as well as any required intermediate frames, at
+            the requested time must have been loaded. Wrapper for xf2rav_c spice function (utilizing
+            ``sxform_c``).
+
+            Parameters
+            ----------
+            original_frame : str
+                Reference frame from which the rotation is made.
+            new_frame : str
+                Reference frame to which the rotation is made.
+            ephemeris_time : float
+                Value of ephemeris time at which rotation is to be determined.
+
+            Returns
+            -------
+            angular_velocity : np.ndarray[,3]
+                Angular velocity of newFrame w.r.t. originalFrame, expressed in originalFrame.
+        }
+
+Factor in the reality that the ``tudat`` API is currently in constant flux,
+features are constantly being added when required by thesis students, and the
+developers working on the source code are continuously changing, we arrive in
+an unsustainable situation. The one question is why is there no existing
+solution to this? Short answer, based on anecdotal evidence, either it's not
+required as code bases usually are less dynamic or it's because they have a
+much smaller collection of functions and classes to maintain documentation for
+(e.g. PaGMO). We need consistency, maintainability and accessibility summarised
+by the following requirements:
+
+1. The API documentation shall originate from a single data source.
+2. The API documentation shall be human readable (so as to allow any non-developer ability to contribute).
+3. The API documentation shall provide mechanisms for language-specific content for a given API element.
+
+Enter ``multidoc``:
+
+``multidoc``
+------------
+
+In short, ``multidoc`` is a tool that generates docstrings for API's that exist
+in multiple languages. The starting point is an API declaration:
+
+
+
 
