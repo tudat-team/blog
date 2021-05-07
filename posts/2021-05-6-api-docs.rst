@@ -38,10 +38,10 @@ in the C++ API documentation:
 .. image:: ../_static/api-docs-example1.png
     :width: 100%
 
-This can then be translated into Sphinx documentation using `Breathe`_, allowing both a
-Doxygen and Sphinx-based API, for whichever users are more comfortable with.
-However, the process of translating this into Python docstrings to enable the
-Python API to be generated is usually manual.
+This can then be translated into Sphinx documentation using `Breathe`_,
+allowing both a Doxygen and Sphinx-based API, for whichever users are more
+comfortable with. However, the process of translating this into Python
+docstrings to enable the Python API to be generated is usually manual.
 
 .. _`Breathe`: https://breathe.readthedocs.io/en/latest/
 
@@ -104,9 +104,13 @@ much smaller collection of functions and classes to maintain documentation for
 (e.g. PaGMO). We need consistency, maintainability and accessibility summarised
 by the following requirements:
 
+.. _requirement:
+
 1. The API documentation shall originate from a single data source.
-2. The API documentation shall be human readable (so as to allow any non-developer ability to contribute).
-3. The API documentation shall provide mechanisms for language-specific content for a given API element.
+2. The API documentation shall be human readable (so as to allow any
+   non-developer ability to contribute).
+3. The API documentation shall provide mechanisms for language-specific content
+   for a given API element.
 
 Enter ``multidoc``:
 
@@ -116,6 +120,118 @@ Enter ``multidoc``:
 In short, ``multidoc`` is a tool that generates docstrings for API's that exist
 in multiple languages. The starting point is an API declaration:
 
+.. code-block::
+    :caption: ``API declaration``
+
+    tudat-api-declaration/
+    ├── __api__.yaml
+    ├── interface
+    │   ├── __module__.yaml
+    │   └── spice.yaml
+    └── simulation
+        ├── __module__.yaml
+        └── environment_setup.yaml
 
 
+The API declaration is a directory containing information that generalises a
+language agnostic API structure. This effect of this structure affects the
+source of both C++ and `pybind11` exposures differently. There are some
+benefits already gained by defining the API structure independent from the
+source:
 
+1. The API can designed before touching source code. Developers can come to
+   an agreement on details before coding.
+2. The API documentation can be maintained independent from the source. This
+   means that API documentation is more accessible.
+
+``__api__.yaml``
+----------------
+
+The following file is the top level API declaration. It defines higher level
+documentation and structure of the highest level.
+
+.. code-block:: yaml
+    :caption: ``__api__.yaml``
+
+    package:
+      name: tudat-cpp    # [cpp]
+      name: tudatpy      # [py]
+
+    description: "{{ api.package.name }} is an awesome project!"
+
+    modules:
+      - interface
+      - simulation
+
+    functions:
+      - name: get_answer_of_universe
+        short_summary: Returns the answer to everything
+        returns:
+            - name: answer_of_universe
+              type: int # [cpp]   <-- this is unnecessary, but for the sake of demo
+              type: int # [py]    <-- ^
+              description: "The only real answer to anything: 42"
+
+
+There are a few things to notice here, firstly the ``# [XXX]`` tags. These
+take part in a preprocessing step in the yaml, inspired from ``conda-forge``'s
+feedstock tool ``conda-smithy``. This partly fulfils `requirement`_ 3, as it
+allows for language specific content. What about if a function refers to one
+that it uses internally, from the API itself? This will be dealt with in a
+similar way to the ``description`` key:
+
+.. code-block::
+
+    description: "{{ api.package.name }} is an awesome project!"
+
+For ``tudatpy``, this would resolve to "tudatpy is an awesome project!",
+during the template replacement step using ``jinja2``, and similarly for
+``tudat-cpp``.
+
+What about if a function refers to one that it uses internally, from the API
+itself? We would want Python users to be directed to the Python API, rather
+than the C++ API. The solution follows similarly from the previous example:
+
+.. code-block::
+
+    description: |
+        See ``{{ api.module.submodule.function }}`` for more information!
+
+Module definitions would have the same mechanisms and design as above, with the
+exception that the ``package`` key is not present.
+
+.. code-block::
+
+    modules:
+      - interface
+      - simulation
+
+The final design to note is:
+
+.. code-block::
+
+        ├── interface
+    │   ├── __module__.yaml
+    │   └── spice.yaml
+
+``__module__.yaml`` is the module definition for ``interface``, and ``spice.yaml``
+is the definition for the ``spice`` submodule. There are effectively two
+ways to define a module, as a directory containing ``__module__.yaml`` or as a
+standalone ``module.yaml``. The directory version infers the presents of a
+submodule contained with the module and the standalone file version infers
+that there are no further submodules.
+
+Finally, an example of the generated Python docstring:
+
+.. code-block::
+
+    Returns the answer to everything
+
+    Returns
+    -------
+    answer_of_universe : int
+        The only real answer to anything: 42
+
+This styling follows the `numpydoc`_ formatting.
+
+.. _`numpydoc`: https://numpydoc.readthedocs.io/en/latest/format.html
