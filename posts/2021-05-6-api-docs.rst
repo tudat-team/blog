@@ -210,9 +210,9 @@ The final design to note is:
 
 .. code-block::
 
-        ├── interface
-    │   ├── __module__.yaml
-    │   └── spice.yaml
+    ── interface
+       ├── __module__.yaml
+       └── spice.yaml
 
 ``__module__.yaml`` is the module definition for ``interface``, and ``spice.yaml``
 is the definition for the ``spice`` submodule. There are effectively two
